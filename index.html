@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LifeOS — Everything in life, organized in one place</title>
+<meta name="theme-color" content="#6366f1">
 <meta name="description" content="LifeOS is a local-first personal dashboard for tasks, money, subscriptions, habits, goals and important dates.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%236366f1'/><circle cx='50' cy='50' r='20' fill='none' stroke='white' stroke-width='10'/></svg>">
 <style>
@@ -50,6 +51,8 @@ input,select{padding:9px 11px;border-radius:9px;border:1px solid var(--bd);backg
 .acts{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 .quick{display:flex;gap:8px;flex-wrap:wrap}
 .canvas{position:relative;height:230px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--pr);outline-offset:2px}
+.card.warn{border-color:var(--warn)}
 .auth aside{display:none}.auth main{display:grid;place-items:center;min-height:100vh}
 .login{text-align:center;display:grid;gap:8px;justify-items:center}.login .logo{padding:0;margin-bottom:10px;font-size:24px}
 .profiles{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:18px}
@@ -127,15 +130,15 @@ function openForm(key,id){
  <div class="acts"><button type="button" class="btn g" data-x>Cancel</button><button class="btn">Save</button></div></form>`;
  m.onclick=e=>{if(e.target===m||e.target.dataset.x!==undefined)m.remove()};
  m.querySelector('form').onsubmit=e=>{e.preventDefault();const o={};F.f.forEach(([k,,t])=>{const val=e.target[k].value;o[k]=t==='number'?parseFloat(val)||0:val.trim()});
-  if(item)Object.assign(item,o);else list.unshift({id:uid(),...F.d(),...o});S.sample=S.sample;save();m.remove();render()};
+  if((key==='tx'&&!(o.amt>0))||(key==='sub'&&!(o.cost>0)))return alert('Please enter an amount greater than zero.');if(item)Object.assign(item,o);else list.unshift({id:uid(),...F.d(),...o});S.sample=S.sample;save();m.remove();render()};
  document.body.appendChild(m);const f=m.querySelector('input,select');f&&f.focus()}
 
 /* ---------- views ---------- */
 const head=(t,s,btn)=>`<header class="top"><div><h1>${t}</h1><div class="sub">${s}</div></div>${btn||''}</header>`;
 const empty=t=>`<div class="empty">${t}</div>`;
-const del=(k,id)=>`<button class="btn d sm" data-act="del" data-k="${k}" data-id="${id}">✕</button>`;
+const del=(k,id)=>`<button class="btn d sm" data-act="del" aria-label="Delete" data-k="${k}" data-id="${id}">✕</button>`;
 const edit=(k,id)=>`<button class="btn g sm" data-act="edit" data-k="${k}" data-id="${id}">Edit</button>`;
-const taskRow=t=>`<div class="row ${t.done?'done':''}"><input class="chk" type="checkbox" ${t.done?'checked':''} data-act="tgl" data-id="${t.id}"><div class="g"><div class="t">${esc(t.t)}</div><div class="mu">Due ${fd(t.due)}</div></div><span class="tag ${t.pri}">${t.pri}</span>${edit('task',t.id)}${del('tasks',t.id)}</div>`;
+const taskRow=t=>`<div class="row ${t.done?'done':''}"><input class="chk" type="checkbox" ${t.done?'checked':''} data-act="tgl" data-id="${t.id}"><div class="g"><div class="t">${esc(t.t)}</div><div class="mu ${!t.done&&dayN(t.due)<0?'out':''}">${t.done?'Completed':dueTxt(t.due)}</div></div><span class="tag ${t.pri}">${t.pri}</span>${edit('task',t.id)}${del('tasks',t.id)}</div>`;
 
 function totals(){const m=mon(),x=S.tx.filter(t=>t.date.startsWith(m));return{inc:x.filter(t=>t.type==='in').reduce((a,t)=>a+t.amt,0),exp:x.filter(t=>t.type==='out').reduce((a,t)=>a+t.amt,0)}}
 function weekly(){const L=[],V=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const k=iso(d);L.push(d.toLocaleDateString(undefined,{weekday:'short'}));V.push(S.tasks.filter(t=>t.done&&t.doneAt===k).length)}return{L,V}}
@@ -147,7 +150,7 @@ dash(){const{inc,exp}=totals(),T=TODAY(),pend=S.tasks.filter(t=>!t.done),don=S.t
  const[gt,ge]=greet();
  return head(`${gt}, ${esc(S.name)} ${ge}`,new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),
  `<div class="quick"><button class="btn" data-act="add" data-k="task">+ Task</button><button class="btn g" data-act="add" data-k="tx">+ Transaction</button><button class="btn g" data-act="add" data-k="date">+ Date</button></div>`)+
- `<div class="grid g4"><div class="card stat hero"><small class="mu">Income this month</small><b>${money(inc)}</b></div><div class="card stat"><small>Expenses this month</small><b class="out">${money(exp)}</b></div><div class="card stat"><small>Pending tasks</small><b>${pend.length}</b></div><div class="card stat"><small>Completed tasks</small><b class="in">${don}</b></div></div>
+ alerts()+`<div class="grid g4"><div class="card stat hero"><small class="mu">Income this month</small><b>${money(inc)}</b></div><div class="card stat"><small>Expenses this month</small><b class="out">${money(exp)}</b></div><div class="card stat"><small>Pending tasks</small><b>${pend.length}</b></div><div class="card stat"><small>Completed tasks</small><b class="in">${don}</b></div></div>
  <div class="grid g3" style="margin-top:16px"><div class="card"><h3>Weekly productivity <span class="mu">tasks completed</span></h3><div class="canvas"><canvas id="c1"></canvas></div></div>
  <div class="card"><h3>Today's schedule</h3>${sched.length?sched.map(s=>`<div class="row"><div class="g">${esc(s.t)}</div><span class="tag">${esc(s.k)}</span></div>`).join(''):empty('Nothing scheduled today 🎉')}</div></div>
  <div class="grid g2" style="margin-top:16px"><div class="card"><h3>Upcoming bills & subscriptions</h3>${up.length?up.map(s=>`<div class="row"><div class="g">${esc(s.name)}<div class="mu">Renews ${fd(s.due)}</div></div><b>${money(s.cost)}</b></div>`).join(''):empty('No subscriptions yet')}</div>
@@ -170,6 +173,7 @@ settings(){return head('Settings & Backup','Personalize LifeOS · your data stay
 <div class="card"><h3>Profile</h3><div class="row"><span class="av" style="width:40px;height:40px;font-size:16px">${esc((S.name[0]||'?').toUpperCase())}</span><div class="g"><b>${esc(S.name)}</b><div class="mu">Preview: ${greet()[0]}, ${esc(S.name)}</div></div></div><br><label class="mu">Display name<br><input id="nm" value="${esc(S.name)}" style="width:100%"></label><br><br><label class="mu">Currency symbol<br><input id="cu" value="${esc(S.cur)}" maxlength="3" style="width:100%"></label><br><br><div class="quick"><button class="btn" data-act="prefs">Save</button><button class="btn g" data-act="pin">Set / change PIN</button><button class="btn g" data-act="logout">Switch user</button></div></div>
 <div class="card"><h3>Appearance</h3><div class="mu">Accent colour</div><div class="quick" style="margin:8px 0 16px">${ACC.map((c,i)=>`<button class="sw ${(S.accent||0)===i?'on':''}" style="background:linear-gradient(135deg,${c[0]},${c[1]})" data-act="acc" data-id="${i}" aria-label="Accent ${i+1}"></button>`).join('')}</div><div class="mu">Theme</div><div class="quick" style="margin-top:8px"><button class="btn ${S.theme==='light'?'':'g'}" data-act="th" data-id="light">Light</button><button class="btn ${S.theme==='dark'?'':'g'}" data-act="th" data-id="dark">Dark</button></div></div>
 <div class="card"><h3>Your modules <span class="mu">show only what you need</span></h3>${VIEWS.filter(v=>!['dash','settings'].includes(v[0])).map(v=>`<label class="row"><input class="chk" type="checkbox" ${S.mods&&S.mods[v[0]]===false?'':'checked'} data-act="mod" data-id="${v[0]}"><div class="g">${v[2]}</div></label>`).join('')}</div>
+<div class="card"><h3>Reminders</h3><label class="mu">Remind me<br><select id="rd" style="width:100%">${[1,2,3,4,5,7].map(n=>`<option value="${n}" ${(S.remDays||3)===n?'selected':''}>${n} day${n>1?'s':''} before the due date</option>`).join('')}</select></label><p class="mu">You'll see a "Due soon" box on your dashboard and, if you enable notifications, one notification a day while LifeOS is open.</p><div class="quick"><button class="btn g" data-act="notif">${('Notification' in window&&Notification.permission==='granted')?'✓ Notifications on':'Enable notifications'}</button><button class="btn" data-act="ics">Add to calendar (.ics)</button></div><p class="mu">For phone or email alerts, import the .ics file into Google Calendar, Outlook or Apple Calendar. It adds a reminder every day from ${S.remDays||3} days before each due date until the day itself. Whether your calendar also emails you depends on its notification settings.</p></div>
 <div class="card"><h3>Backup & restore</h3><p class="mu">Browser data doesn't sync between devices. Export a backup regularly and restore it anywhere.</p><div class="quick"><button class="btn" data-act="exp">Export backup (JSON)</button><button class="btn g" data-act="csv">Export transactions (CSV)</button><button class="btn g" data-act="imp">Restore backup</button></div><input type="file" id="file" accept=".json" hidden></div>
 <div class="card"><h3>Workspace</h3><p class="mu">${S.sample?'You are viewing sample data.':'Your workspace.'}</p><div class="quick"><button class="btn g" data-act="clear">Clear all data & start fresh</button><button class="btn d" data-act="delprof">Delete this profile</button></div></div></div>`}};
 
@@ -203,12 +207,14 @@ document.addEventListener('click',e=>{
  else if(a==='tgl'){const t=S.tasks.find(x=>x.id===id);t.done=!t.done;t.doneAt=t.done?TODAY():null;save();render()}
  else if(a==='hab'){const h=S.habits.find(x=>x.id===id),d=el.dataset.d;h.log=h.log.includes(d)?h.log.filter(x=>x!==d):[...h.log,d];save();render()}
  else if(a==='prefs'){S.name=$('#nm').value.trim()||S.name;S.cur=$('#cu').value.trim()||'$';save();render()}
- else if(a==='exp')dl('lifeos-backup-'+TODAY()+'.json','application/json',JSON.stringify(S,null,2));
+ else if(a==='exp'){S.lastBackup=TODAY();save();dl('lifeos-backup-'+TODAY()+'.json','application/json',JSON.stringify(S,null,2));render()}
  else if(a==='csv'){const q=v=>'"'+String(v).replace(/"/g,'""')+'"';dl('lifeos-transactions-'+TODAY()+'.csv','text/csv','Date,Type,Category,Note,Amount\n'+S.tx.map(t=>[t.date,t.type,t.cat,t.note,t.amt].map(q).join(',')).join('\n'))}
  else if(a==='imp')$('#file').click();
  else if(a==='clear'){if(confirm('Remove ALL data in this profile?')){Object.assign(S,blank(),{sample:false});save();render()}}
  else if(a==='delprof'){if(confirm('Delete this profile and all its data permanently?')){localStorage.removeItem(K);P.list=P.list.filter(x=>x.id!==P.cur);P.cur=null;savP();showLogin()}}
  else if(a==='logout'){P.cur=null;savP();showLogin()}
+ else if(a==='notif'){if(!('Notification' in window))return alert('This browser does not support notifications.');Notification.requestPermission().then(()=>{render();notifyDue()})}
+ else if(a==='ics')icsFile();
  else if(a==='acc'){S.accent=+id;save();render()}
  else if(a==='th'){S.theme=id;save();render()}
  else if(a==='mod'){S.mods=S.mods||{};S.mods[id]=S.mods[id]===false;save();render()}
@@ -217,6 +223,25 @@ document.addEventListener('click',e=>{
 document.addEventListener('change',e=>{if(e.target.id!=='file')return;const f=e.target.files[0];if(!f)return;const r=new FileReader();
  r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.tasks||!d.tx)throw 0;if(!confirm('Replace current data with this backup?'))return;S=d;save();render()}catch(x){alert('That file is not a valid LifeOS backup.')}};r.readAsText(f)});
 addEventListener('hashchange',()=>{const v=location.hash.slice(1);if(S&&V[v]&&v!==view){view=v;render()}});
+const dayN=d=>Math.round((new Date(d+'T00:00')-new Date(TODAY()+'T00:00'))/864e5);
+function dueTxt(d){const n=dayN(d);return n<0?'Overdue by '+(-n)+' day'+(n===-1?'':'s'):n===0?'Due today':n===1?'Due tomorrow':'Due '+fd(d)}
+function dueSoon(){const N=S.remDays||3;return[...S.tasks.filter(t=>!t.done&&dayN(t.due)<=N).map(t=>({t:t.t,n:dayN(t.due),lbl:dueTxt(t.due)})),...S.dates.filter(d=>{const n=dayN(d.date);return n>=0&&n<=N}).map(d=>{const n=dayN(d.date);return{t:d.t,n,lbl:n===0?'Today':n===1?'Tomorrow':'In '+n+' days'}})].sort((a,b)=>a.n-b.n)}
+function alerts(){let h='';const ds=dueSoon();
+ if(ds.length)h+=`<div class="card warn"><h3>⏰ Due soon <span class="mu">next ${S.remDays||3} days</span></h3>${ds.slice(0,5).map(x=>`<div class="row"><div class="g">${esc(x.t)}</div><span class="tag ${x.n<0?'high':x.n===0?'med':''}">${esc(x.lbl)}</span></div>`).join('')}</div>`;
+ const n=S.tasks.length+S.tx.length+S.goals.length+S.habits.length+S.subs.length+S.dates.length,age=S.lastBackup?-dayN(S.lastBackup):null;
+ if(!S.sample&&n&&(age===null||age>7))h+=`<div class="card warn"><div class="row" style="border:0;padding:0"><div class="g">💾 <b>Back up your data.</b> <span class="mu">${age===null?'You have never exported a backup.':'Your last backup was '+age+' days ago.'}</span></div><button class="btn sm" data-act="exp">Export now</button></div></div>`;
+ return h?`<div class="grid" style="margin-bottom:16px">${h}</div>`:''}
+function notifyDue(){if(!S||!('Notification' in window)||Notification.permission!=='granted'||S.lastNotify===TODAY())return;const d=dueSoon();if(!d.length)return;S.lastNotify=TODAY();save();
+ try{new Notification('LifeOS: '+d.length+' due soon',{body:d.slice(0,4).map(x=>x.t+' ('+x.lbl+')').join('\n')})}catch(e){}}
+function icsFile(){const N=S.remDays||3,z=new Date().toISOString().replace(/[-:]/g,'').slice(0,15)+'Z';
+ const ev=[...S.tasks.filter(t=>!t.done&&dayN(t.due)>=0).map(t=>({id:t.id,t:t.t,d:t.due,k:'Task'})),...S.dates.filter(d=>dayN(d.date)>=0).map(d=>({id:d.id,t:d.t,d:d.date,k:d.kind}))];
+ if(!ev.length)return alert('Nothing upcoming to export yet.');
+ const al=[];for(let k=N;k>=0;k--){const h=k*24-9;al.push(h>0?'-PT'+h+'H':'PT'+(-h)+'H')}
+ const x=v=>String(v).replace(/[\\;,]/g,m=>'\\'+m).replace(/\n/g,' ');
+ const e=ev.map(v=>{const nx=iso(new Date(new Date(v.d+'T00:00').getTime()+864e5)).replace(/-/g,'');return['BEGIN:VEVENT','UID:'+v.id+'@lifeos','DTSTAMP:'+z,'DTSTART;VALUE=DATE:'+v.d.replace(/-/g,''),'DTEND;VALUE=DATE:'+nx,'SUMMARY:'+x(v.k+': '+v.t),...al.flatMap(t=>['BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+x(v.t),'TRIGGER:'+t,'END:VALARM']),'END:VEVENT'].join('\r\n')});
+ dl('lifeos-reminders.ics','text/calendar',['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//LifeOS//EN','CALSCALE:GREGORIAN',...e,'END:VCALENDAR'].join('\r\n'))}
+document.addEventListener('change',e=>{if(e.target.id==='rd'){S.remDays=+e.target.value;save();render()}});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&P.list.length){const m=document.querySelector('.modal');m&&m.remove()}});
 function showLogin(){charts.forEach(c=>c.destroy());charts=[];S=null;K=null;document.body.classList.add('auth');
  const r=document.documentElement;r.dataset.theme=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';r.style.removeProperty('--pr');r.style.removeProperty('--pr2');
  const l=P.list;$('#main').innerHTML=`<div class="login"><div class="logo"><i></i>LifeOS</div><h1>${l.length?'Who’s using LifeOS?':'Welcome to LifeOS'}</h1><div class="sub">${l.length?'Choose your profile':'Create your profile to get started'}</div><div class="profiles">${l.map(p=>`<button class="card prof" data-act="login" data-id="${p.id}"><span class="av">${esc((p.name[0]||'?').toUpperCase())}</span>${esc(p.name)}${p.pin?' 🔒':''}</button>`).join('')}<button class="card prof" data-act="newp"><span class="av">+</span>New profile</button></div></div>`;
@@ -235,10 +260,10 @@ function askPin(p){const m=document.createElement('div');m.className='modal';
  document.body.appendChild(m);m.querySelector('input').focus()}
 function enter(id){P.cur=id;savP();K='lifeos.u.'+id;try{S=JSON.parse(localStorage.getItem(K))}catch(e){S=null}
  if(!S||!S.tasks){S=Object.assign(sample(),blank());S.sample=false;S.name=(P.list.find(p=>p.id===id)||{}).name||'Friend'}
- document.body.classList.remove('auth');const v=(location.hash||'#dash').slice(1);view=V[v]?v:'dash';save();render()}
+ document.body.classList.remove('auth');const v=(location.hash||'#dash').slice(1);view=V[v]?v:'dash';save();render();notifyDue()}
 const cur=P.list.find(p=>p.id===P.cur);
 if(cur&&!cur.pin)enter(cur.id);else{showLogin();if(cur)askPin(cur)}
-let lastG=greet()[0];setInterval(()=>{const g=greet()[0];if(g!==lastG){lastG=g;if(S&&view==='dash'&&!document.querySelector('.modal'))render()}},60000);
+let lastG=greet()[0];setInterval(()=>{notifyDue();const g=greet()[0];if(g!==lastG){lastG=g;if(S&&view==='dash'&&!document.querySelector('.modal'))render()}},60000);
 })();
 </script>
 </body>
