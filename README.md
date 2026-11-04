@@ -199,6 +199,17 @@ Yes, but each device keeps its own separate data. To move data between them, use
 **How much can I store?**
 Browsers allow roughly 5 MB per website, which is far more than most people use for personal tasks and finances.
 
+## Copyright and License
+
+Copyright © 2026 [Your Legal Name]. All rights reserved.
+
+LifeOS is proprietary software. No license is granted to copy,
+modify, redistribute, or commercially use this project's original
+code without prior written permission.
+
+See [LICENSE](./LICENSE) for details.
+
+
 ---
 
 Thank you for choosing LifeOS. If something doesn't work as described here, contact the seller from the page where you purchased it, and mention your browser and device.
