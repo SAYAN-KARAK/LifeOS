@@ -102,6 +102,12 @@ The **+ Task**, **+ Transaction** and **+ Date** buttons at the top let you add 
 - Click **+ Add date**. Choose a type (Birthday, Appointment, Exam, Reminder or Other) and the date.
 - Each entry shows a countdown such as *Today*, *Tomorrow* or *in 6 days*.
 
+### Reminders (due-soon alerts)
+- Anything due within the next **3 days** (you can choose 1 to 7 in **Settings → Reminders**), plus overdue tasks, appears in a **Due soon** box at the top of your dashboard.
+- **Notifications:** in **Settings → Reminders**, click **Enable notifications** and allow them when your browser asks. LifeOS then shows **one notification per day** summarizing what is due soon. This works while LifeOS is open in a browser tab.
+- **Phone and email alerts:** click **Add to calendar (.ics)** and import the file into Google Calendar, Outlook or Apple Calendar. Each upcoming task and date gets a reminder **every day from 3 days before until the due date**, delivered by your calendar app (and by email if you have email notifications turned on there). Export again after you add new tasks.
+- **Backup reminder:** if you haven't exported a backup for more than 7 days, the dashboard shows a **Back up your data** reminder with an **Export now** button.
+
 ### Reports
 Three simple charts: **spending by category** this month, **income versus expenses** for the last 6 months, and **tasks completed** over the last 7 days. They update as you add data.
 
@@ -130,6 +136,7 @@ Open **Settings** to personalize LifeOS:
 - **Accent colour:** choose from 5 colour themes.
 - **Theme:** Light or Dark.
 - **Your modules:** switch off sections you don't need (for example, hide Subscriptions if you don't use it). The Dashboard and Settings always stay.
+- **Reminders:** how many days before a due date you want to be reminded, notifications, and the calendar export.
 - **Set / change PIN:** add, change or remove your lock. Leave it empty to remove the PIN.
 
 Changes apply immediately and are saved automatically.
